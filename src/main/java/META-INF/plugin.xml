@@ -12,6 +12,11 @@
                 <li>Ivy configurations that need to be resolved can be chosen for each module</li>
                 <li>Properties can be injected into the ivy resolve process</li>
             </ul>
+        </p><p>This OpenCloud build adds:
+          <ul>
+             <li>Built-in support for OpenCloud src.zip and javadoc.zip file types.</li>
+             <li>Automatic retrieval of all available source and javadoc artifacts.</li>
+          </ul>
         </p>]]>
     </description>
     <change-notes><![CDATA[

@@ -35,7 +35,7 @@
 
     <taskdef name="javac2" classname="com.intellij.ant.Javac2">
         <classpath>
-            <pathelement location="${idea.home}/redist/javac2.jar" />
+            <pathelement location="${idea.home}/lib/javac2.jar" />
             <pathelement location="${idea.home}/lib/asm.jar" />
             <pathelement location="${idea.home}/lib/asm-commons.jar" />
 			<pathelement location="${idea.home}/lib/asm4-all.jar" />

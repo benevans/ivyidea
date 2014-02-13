@@ -39,7 +39,6 @@ import org.clarent.ivyidea.resolve.dependency.ExternalDependencyFactory;
 import org.clarent.ivyidea.resolve.dependency.InternalDependency;
 import org.clarent.ivyidea.resolve.dependency.ResolvedDependency;
 import org.clarent.ivyidea.resolve.problem.ResolveProblem;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,22 +112,31 @@ class DependencyResolver {
                         final File artifactFile = artifactDownloadReport.getLocalFile();
                         addExternalDependency(artifact, artifactFile, resolvedConfiguration, project);
                     }
-                    // Go back and manually download any missing javadoc or source dependencies,
+
+                    // If activated manually download any missing javadoc or source dependencies,
                     // in case they weren't selected by the Ivy configuration.
                     // This means that dependencies in ivy.xml don't need to explicitly include configurations
                     // for javadoc or sources, just to ensure that the plugin can see them. The plugin will
                     // get all javadocs and sources it can find for each dependency.
-                    final IvyNode node = configurationReport.getDependency(dependency);
-                    final ModuleDescriptor md = node.getDescriptor();
-                    final Artifact[] artifacts = md.getAllArtifacts();
-                    for (Artifact artifact : artifacts) {
-                        // TODO: if sources are found, don't bother attaching javadoc?
-                        // That way, IDEA will generate the javadoc and resolve links to other javadocs
-                        if (isSource(project, artifact) || isJavadoc(project, artifact)) {
-                            if (resolveReport.getArtifacts().contains(artifact)) continue; // already resolved, ignore.
-                            // try to download
-                            ArtifactDownloadReport adr = ivy.getResolveEngine().download(artifact, new DownloadOptions());
-                            addExternalDependency(artifact, adr.getLocalFile(), resolvedConfiguration, project);
+                    final boolean attachSources = IvyIdeaConfigHelper.alwaysAttachSources(project);
+                    final boolean attachJavadocs = IvyIdeaConfigHelper.alwaysAttachJavadocs(project);
+                    if (attachSources || attachJavadocs) {
+                        final IvyNode node = configurationReport.getDependency(dependency);
+                        final ModuleDescriptor md = node.getDescriptor();
+                        final Artifact[] artifacts = md.getAllArtifacts();
+                        for (Artifact artifact : artifacts) {
+                            // TODO: if sources are found, don't bother attaching javadoc?
+                            // That way, IDEA will generate the javadoc and resolve links to other javadocs
+                            if ((attachSources && isSource(project, artifact))
+                                    || (attachJavadocs && isJavadoc(project, artifact))) {
+                                if (resolveReport.getArtifacts().contains(artifact)) {
+                                    continue; // already resolved, ignore.
+                                }
+
+                                // try to download
+                                ArtifactDownloadReport adr = ivy.getResolveEngine().download(artifact, new DownloadOptions());
+                                addExternalDependency(artifact, adr.getLocalFile(), resolvedConfiguration, project);
+                            }
                         }
                     }
                 }
